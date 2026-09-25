@@ -52,6 +52,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc && cp src/anthropic-prompt.txt dist/",
+    "prepare": "pnpm run build",
     "test": "node --test --experimental-strip-types src/**/*.test.ts scripts/**/*.test.ts",
     "test:isolated": "sh scripts/test-isolated.sh",
     "test:models": "pnpm run build && node scripts/test-models.ts",
