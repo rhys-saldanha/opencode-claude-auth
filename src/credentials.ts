@@ -28,6 +28,7 @@ import {
   isRefreshCooldownActive,
   noteRefreshTerminal,
   noteRefreshTransient,
+  REQUEST_WAIT_BUDGET_MS,
   type RefreshFailureKind,
 } from "./refresh-backoff.ts"
 import { acquireRefreshLock } from "./refresh-lock.ts"
@@ -1079,13 +1080,6 @@ export async function getCachedCredentials(
   return fresh
 }
 
-/** Max time a single request will wait through a transient refresh rate-limit. */
-const REFRESH_WAIT_MS = (() => {
-  const raw = process.env.OPENCODE_CLAUDE_AUTH_REFRESH_WAIT_MS
-  const parsed = raw ? Number.parseInt(raw, 10) : NaN
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 45_000
-})()
-
 const REFRESH_POLL_MS = 2_500
 
 function sleepAbortable(ms: number, signal?: AbortSignal): Promise<void> {
@@ -1138,7 +1132,7 @@ export async function getCredentialsWithBackoff(
   const now = opts.now ?? Date.now
   const sleep = opts.sleep ?? sleepAbortable
   const rng = opts.rng ?? Math.random
-  const maxWaitMs = opts.maxWaitMs ?? REFRESH_WAIT_MS
+  const maxWaitMs = opts.maxWaitMs ?? REQUEST_WAIT_BUDGET_MS
   const pollMs = opts.pollMs ?? REFRESH_POLL_MS
   const deadline = now() + maxWaitMs
 
